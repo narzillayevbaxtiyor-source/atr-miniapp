@@ -1,5 +1,18 @@
 import Script from 'next/script';
+import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
+
+const display = Cormorant_Garamond({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
+  display: 'swap',
+});
+const sans = Inter({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-sans',
+  display: 'swap',
+});
 
 export const metadata = {
   title: 'Atr Do‘koni',
@@ -11,20 +24,12 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
-  themeColor: '#14100c',
+  themeColor: '#0d0a07',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="uz">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="uz" className={`${display.variable} ${sans.variable}`}>
       <body>
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         <div className="app">{children}</div>
