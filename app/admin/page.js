@@ -25,6 +25,7 @@ export default function Admin() {
   const [form, setForm] = useState(null);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async (password) => {
     const [o, p] = await Promise.all([
@@ -88,6 +89,45 @@ export default function Admin() {
     if (error) { setMsg(error.message); return; }
     setForm(null);
     load(pw);
+  };
+
+  // Telefon rasmini kichraytirib (900px, JPEG) yuklaydi — tez ochilishi uchun
+  const resizeImage = (file) =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const scale = Math.min(1, 900 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob((b) => (b ? resolve(b) : reject(new Error("Rasm o'qilmadi"))), 'image/jpeg', 0.85);
+      };
+      img.onerror = () => reject(new Error("Rasm o'qilmadi"));
+      img.src = url;
+    });
+
+  const uploadImage = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploading(true);
+    setMsg('');
+    try {
+      const blob = await resizeImage(file);
+      const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const { error } = await supabase.storage
+        .from('product-images')
+        .upload(name, blob, { contentType: 'image/jpeg' });
+      if (error) throw error;
+      const { data } = supabase.storage.from('product-images').getPublicUrl(name);
+      setForm((s) => ({ ...s, image_url: data.publicUrl }));
+    } catch (err) {
+      setMsg('Rasm yuklanmadi: ' + (err.message || 'noma’lum xato'));
+    }
+    setUploading(false);
   };
 
   const removeProduct = async (p) => {
@@ -171,7 +211,20 @@ export default function Admin() {
                 {['Erkaklar', 'Ayollar', 'Uniseks', 'Arab attarlari'].map((c) => <option key={c}>{c}</option>)}
               </select>
               <textarea className="input" placeholder="Tavsif" value={form.description} onChange={f('description')} />
-              <input className="input" placeholder="Rasm havolasi (ixtiyoriy)" value={form.image_url} onChange={f('image_url')} />
+              <div className="field" style={{ margin: 0 }}>
+                <label>Rasm (galereyadan tanlang)</label>
+                <input className="input" type="file" accept="image/*" onChange={uploadImage} disabled={uploading} />
+                {uploading && <span style={{ color: 'var(--muted)' }}>Yuklanmoqda...</span>}
+                {form.image_url && (
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.image_url} alt="" style={{ width: 70, height: 70, objectFit: 'cover', borderRadius: 10 }} />
+                    <button type="button" className="btn danger small" onClick={() => setForm((s) => ({ ...s, image_url: '' }))}>
+                      Rasmni olib tashlash
+                    </button>
+                  </div>
+                )}
+              </div>
               <input className="input" placeholder="Yuqori nota" value={form.notes_top} onChange={f('notes_top')} />
               <input className="input" placeholder="Yurak nota" value={form.notes_heart} onChange={f('notes_heart')} />
               <input className="input" placeholder="Baza nota" value={form.notes_base} onChange={f('notes_base')} />
