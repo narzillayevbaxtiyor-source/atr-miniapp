@@ -3,7 +3,10 @@
 export async function POST(req) {
   const token = process.env.BOT_TOKEN;
   const chat = process.env.ADMIN_CHAT_ID;
-  if (!token || !chat) return Response.json({ ok: false, skipped: true });
+  if (!token || !chat) {
+    console.error("notify: BOT_TOKEN yoki ADMIN_CHAT_ID sozlanmagan");
+    return Response.json({ ok: false, skipped: true });
+  }
 
   let b;
   try {
@@ -25,10 +28,21 @@ export async function POST(req) {
     (b.tg ? `✈️ Telegram: ${clip(b.tg, 40)}\n` : '') +
     `\n${items}\n\n💰 Jami: ${Math.round(Number(b.total) || 0)} so'm`;
 
-  const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chat, text }),
-  });
-  return Response.json({ ok: r.ok });
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chat.trim(), text }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      // Tokenni logga yozmaymiz, faqat Telegram javobini
+      console.error('notify: Telegram xatosi', r.status, j.description || '');
+      return Response.json({ ok: false, status: r.status, error: j.description || '' });
+    }
+    return Response.json({ ok: true });
+  } catch (e) {
+    console.error('notify: tarmoq xatosi', e?.message);
+    return Response.json({ ok: false, error: 'network' });
+  }
 }
