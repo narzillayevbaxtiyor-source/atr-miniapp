@@ -110,7 +110,7 @@ export default function Shop() {
     setCart((c) => {
       const i = c.findIndex((x) => x.id === sel.id && x.ml === ml);
       if (i >= 0) return c.map((x, k) => (k === i ? { ...x, qty: Math.min(x.qty + 1, 50) } : x));
-      return [...c, { id: sel.id, name: sel.name, brand: sel.brand, ml, price: Number(v.price), qty: 1 }];
+      return [...c, { id: sel.id, name: sel.name, brand: sel.brand, image: sel.image_url, ml, price: Number(v.price), qty: 1 }];
     });
     window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred?.('success');
     go('cart');
@@ -262,7 +262,7 @@ export default function Shop() {
           <>
             {cart.map((c) => (
               <div className="row" key={c.id + c.ml}>
-                <div className="thumb"><Bottle name={c.name} /></div>
+                <div className="thumb"><Bottle name={c.name} image={c.image} /></div>
                 <div className="info">
                   <b>{c.name}</b>
                   <span>{c.ml} ml &middot; {fmt(c.price)}</span>
@@ -298,17 +298,17 @@ export default function Shop() {
         </div>
         <div className="field">
           <label>Telefon raqami *</label>
-          <input className="input" type="tel" inputMode="tel" placeholder="+998 90 123 45 67" value={form.phone} onChange={set('phone')} autoComplete="tel" />
+          <input className="input" type="tel" inputMode="tel" placeholder="+966 5X XXX XXXX" value={form.phone} onChange={set('phone')} autoComplete="tel" />
         </div>
         <div className="field">
-          <label>Shahar va manzil *</label>
+          <label>Manzil (mehmonxona, xona raqami) *</label>
           <textarea className="input" value={form.address} onChange={set('address')} />
         </div>
         <div className="field">
           <label>Izoh (ixtiyoriy)</label>
           <input className="input" value={form.comment} onChange={set('comment')} />
         </div>
-        <div className="total"><span>To&lsquo;lov: naqd, yetkazilganda</span><b>{fmt(total)}</b></div>
+        <div className="total"><span>To&lsquo;lov: naqd, yetkazilganda &middot; Haram atrofiga yetkazish bepul</span><b>{fmt(total)}</b></div>
         {err && <div className="error">{err}</div>}
         {!isTg && (
           <div className="fixedbar"><div className="inner">
@@ -345,7 +345,7 @@ export default function Shop() {
       {topbar}
       <div className="hero">
         <h1>Sizning<br />hidingiz</h1>
-        <p>Original va tanlangan attarlar. Yetkazib berish butun mamlakat bo&lsquo;ylab.</p>
+        <p>Mashhur atirlar 5 va 10 ml&lsquo;da. Haram atrofiga yetkazib berish &mdash; bepul.</p>
         <div className="hero-bottle"><Bottle name="Atr" /></div>
       </div>
       <input className="search" placeholder="Atr yoki brend qidirish..." value={q} onChange={(e) => setQ(e.target.value)} />
