@@ -193,6 +193,13 @@ export default function Shop() {
   });
 
   // ================= UI =================
+  const openAdmin = () => {
+    const link = 'https://t.me/Foydaliadmi';
+    const tg = window.Telegram?.WebApp;
+    if (tg?.initData && tg.openTelegramLink) tg.openTelegramLink(link);
+    else window.open(link, '_blank');
+  };
+
   const topbar = (
     <div className="top">
       <div className="logo">
@@ -374,6 +381,9 @@ export default function Shop() {
           ))}
         </div>
       )}
+      <button className="admin-link" onClick={openAdmin}>
+        Savolingiz bormi? Admin: <b>@Foydaliadmi</b>
+      </button>
     </div>
   );
 }
